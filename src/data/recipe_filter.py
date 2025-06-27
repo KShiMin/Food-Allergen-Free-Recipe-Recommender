@@ -1,12 +1,17 @@
 import pandas as pd
 import spacy
 import re
+import os
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+csv_path = os.path.join(BASE_DIR, "recipes.csv")
+export_path = os.path.join(BASE_DIR, "filtered_recipe.csv")
 
 nlp = spacy.load("en_core_web_sm")
 
 pd.set_option('display.max_colwidth', None)
 
-recipes = pd.read_csv("recipes.csv")
+recipes = pd.read_csv(csv_path)
 
 recipes_wanted = ["Joy's Easy Banana Bread", "Pan-Fried Shrimp", "Refreshing Cucumber Watermelon Salad", 
                   "Applesauce Pork Chops", "Risotto with Fresh Figs and Prosciutto", "Gorgonzola Pear Pasta",
@@ -26,5 +31,5 @@ recipes_filtered = recipes[recipes["recipe_name"].isin(recipes_wanted)]
 
 recipes_filtered[["cleaned_ingredients", "quantity"]] = recipes_filtered["ingredients"].apply(rmStopwords).apply(pd.Series)
 
-recipes_filtered.to_csv("filtered_recipes2.csv", index=False)
+recipes_filtered.to_csv(export_path, index=False)
 print("Filtered Recipes exported")
