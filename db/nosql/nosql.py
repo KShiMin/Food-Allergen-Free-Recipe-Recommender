@@ -137,8 +137,8 @@ from pymongo import MongoClient
 class MongoCRUD:
     
     def __init__(self):
-        self.cilent = MongoClient("mongodb://localhost:27017/")
-        self.db = self.cilent["allergen-free-recipes"]
+        self.client = MongoClient("mongodb://localhost:27017/")
+        self.db = self.client["allergen-free-recipes"]
         
     def insert(self, collection, data):
         if isinstance(data, dict):
@@ -162,4 +162,4 @@ class MongoCRUD:
     
     # Graceful Closing - ensure proper exit
     def __exit__(self, exc_type, exc_value, traceback):
-        pass
+        self.client.close()
