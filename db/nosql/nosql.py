@@ -21,6 +21,9 @@ class MongoCRUD:
     def find_many(self, collection, query):
         return list(self.db[collection].find(query))
     
+    def distinct(self, collection, field):
+        return self.db[collection].distinct(field)
+    
     def update_one(self, collection, query, update):
         return self.db[collection].update_one(query, {"$set": update})
 

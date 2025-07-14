@@ -1,7 +1,9 @@
 import re
+import csv
 import pandas as pd
 from pathlib import Path
 from fractions import Fraction
+from datetime import datetime
 from db.nosql.nosql import MongoCRUD
 
 
@@ -120,6 +122,28 @@ class ETL:
         
         return instructions
     
+    def load_reviews(self):
+        review_csv_path = self.BASE_DIR / "data" / "sample_reviews.csv"
+
+        if not review_csv_path.exists():
+            print("No sample_reviews.csv file found. Skipping review import.")
+            return []
+
+        reviews = []
+        with open(review_csv_path, newline="", encoding="utf-8") as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                reviews.append({
+                    "recipe_id": int(row["recipe_id"]),
+                    "user_id": int(row["user_id"]),
+                    "description": row["description"],
+                    "rating": int(row["rating"]),
+                    "imgs": row["imgs"].split(",") if row["imgs"] else [],
+                    "videos": row["videos"].split(",") if row["videos"] else [],
+                    "video_url": row["video_url"],
+                    "created_at": datetime.fromisoformat(row["created_at"])
+                })
+        return reviews
     
     def run(self):
         recipes = self.build_recipe_documents()
@@ -134,6 +158,15 @@ class ETL:
             print(f"{len(result.inserted_ids)} recipes inserted successfully")
         except Exception as e:
             print(f"Error during bulk insert: {e}")
+        
+        # Reviews
+        review_docs = self.load_reviews()
+        if review_docs:
+            try:
+                result = self.client.insert("Reviews", review_docs, ordered=False)
+                print(f"{len(result.inserted_ids)} reviews inserted successfully")
+            except Exception as e:
+                print(f"Error during review insert: {e}")
 
 def main():
     mongo_client = MongoCRUD()

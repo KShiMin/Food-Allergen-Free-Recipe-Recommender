@@ -1,49 +1,49 @@
-CREATE TABLE user_profile (
-	user_id INT NOT NULL AUTO_INCREMENT,
-    user_name VARCHAR(15) NOT NULL,
-    user_password VARCHAR(20) NOT NULL,
-	height FLOAT,
-	weight FLOAT,
-	gender ENUM('male', 'female', 'prefer_not_to_say'),
-	age INT,
-	caloric_budget INT,
-	dietary_preferences TEXT,
-	activity_level ENUM('sedentary', 'light', 'moderate', 'active', 'very_active'),
-	PRIMARY KEY (user_id) 
+-- enable enforcement of foreign key constraints in SQLite
+PRAGMA foreign_keys = ON;   
+
+CREATE TABLE IF NOT EXISTS user_profile (
+    user_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_name TEXT NOT NULL,
+    user_password TEXT NOT NULL,
+    height REAL,
+    weight REAL,
+    gender TEXT CHECK (gender IN ('male', 'female', 'prefer_not_to_say')),
+    age INTEGER,
+    caloric_budget INTEGER,
+    dietary_preferences TEXT,
+    activity_level TEXT CHECK (activity_level IN ('sedentary', 'light', 'moderate', 'active', 'very_active'))
 );
 
-CREATE TABLE allergen (
-	allergen_id INT NOT NULL,
-	allergen_name VARCHAR(255) NOT NULL,
-	allergen_description VARCHAR(255),
-	PRIMARY KEY (allergen_id)
+CREATE TABLE IF NOT EXISTS allergen (
+    allergen_id INTEGER PRIMARY KEY,
+    allergen_name TEXT NOT NULL,
+    allergen_description TEXT
 );
 
-CREATE TABLE user_allergen (
-    user_id INT NOT NULL,
-    allergen_id INT NOT NULL,
+CREATE TABLE IF NOT EXISTS user_allergen (
+    user_id INTEGER NOT NULL,
+    allergen_id INTEGER NOT NULL,
     PRIMARY KEY (user_id, allergen_id),
     FOREIGN KEY (user_id) REFERENCES user_profile(user_id) ON DELETE CASCADE,
     FOREIGN KEY (allergen_id) REFERENCES allergen(allergen_id)
 );
 
-CREATE TABLE ingredient (
-	ingredient_id VARCHAR(5) NOT NULL,
-	ingredient_name VARCHAR(255) NOT NULL,
-	nutritional_info FLOAT NOT NULL,
-	PRIMARY KEY (ingredient_id)
+CREATE TABLE IF NOT EXISTS ingredient (
+    ingredient_id TEXT PRIMARY KEY,
+    ingredient_name TEXT NOT NULL,
+    nutritional_info REAL NOT NULL
 );
 
-CREATE TABLE ingredient_allergen (
-    allergen_id INT NOT NULL,
-    ingredient_id VARCHAR(5) NOT NULL,
+CREATE TABLE IF NOT EXISTS ingredient_allergen (
+    allergen_id INTEGER NOT NULL,
+    ingredient_id TEXT NOT NULL,
     PRIMARY KEY (allergen_id, ingredient_id),
-	FOREIGN KEY (ingredient_id) REFERENCES ingredient(ingredient_id)
+    FOREIGN KEY (ingredient_id) REFERENCES ingredient(ingredient_id)
 );
 
-CREATE TABLE ingredient_substitution (
-    original_ingredient_id VARCHAR(5) NOT NULL,
-    substitute_ingredient_id VARCHAR(5) NOT NULL,
+CREATE TABLE IF NOT EXISTS ingredient_substitution (
+    original_ingredient_id TEXT NOT NULL,
+    substitute_ingredient_id TEXT NOT NULL,
     PRIMARY KEY (original_ingredient_id, substitute_ingredient_id),
     FOREIGN KEY (original_ingredient_id) REFERENCES ingredient(ingredient_id),
     FOREIGN KEY (substitute_ingredient_id) REFERENCES ingredient(ingredient_id)
