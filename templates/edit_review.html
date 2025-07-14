@@ -1,0 +1,19 @@
+<!doctype html>
+<html>
+<head>
+  <title>Edit Review</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-4">
+  <h2>Edit Review</h2>
+  <form method="post" enctype="multipart/form-data" action="{{ url_for('add_review', recipe_id=recipe._id) }}">
+  <textarea name="description" class="form-control" required placeholder="Write your review here..."></textarea>
+  <input type="file" name="imgs" accept="image/*" multiple>
+  <input type="file" name="videos" accept="video/*" multiple> <!-- NEW -->
+  <input type="url" name="video_url" class="form-control" placeholder="Optional: Paste video link here">
+  <button type="submit" class="btn btn-primary">Submit Review</button>
+</form>
+</div>
+</body>
+</html>

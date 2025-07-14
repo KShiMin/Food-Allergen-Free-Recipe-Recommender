@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+  <!-- User name -->
+  <h1 class="mb-4">{{ user.user_name }}</h1>
+
+  <!-- Basic info -->
+  <dl class="row mb-4">
+    <dt class="col-sm-3">Gender:</dt>
+    <dd class="col-sm-9">{{ user.gender.title() if user.gender else '—' }}</dd>
+
+    <dt class="col-sm-3">Age:</dt>
+    <dd class="col-sm-9">{{ user.age or '—' }}</dd>
+    
+    <dt class="col-sm-3">Height (cm):</dt>
+    <dd class="col-sm-9">{{ user.height or '—' }}</dd>
+    
+    <dt class="col-sm-3">Weight (kg):</dt>
+    <dd class="col-sm-9">{{ user.weight or '—' }}</dd>
+
+    <dt class="col-sm-3">Caloric Budget:</dt>
+    <dd class="col-sm-9">{{ user.caloric_budget or '—' }}</dd>
+    
+    <dt class="col-sm-3">Activity Level:</dt>
+    <dd class="col-sm-9">{{ user.activity_level.replace('_',' ').title() if user.activity_level else '—' }}</dd>
+  </dl>
+
+  <!-- Allergens -->
+  <h5 class="mb-2">Allergic to:</h5>
+  <div class="d-flex flex-wrap mb-5">
+    {% if allergens %}
+      {% for alg in allergens %}
+        <span class="badge bg-{{ badge_colors.get(alg, 'secondary') }} me-2 mb-2">
+          <i class="{{ allergen_icons.get(alg, 'fas fa-exclamation') }} me-1"></i>
+          {{ alg }}
+        </span>
+      {% endfor %}
+    {% else %}
+      <span class="text-muted">None</span>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
+
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+/>
+
