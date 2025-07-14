@@ -13,6 +13,7 @@ dependencies = [
 
 [project.scripts]
 ui = "app.app:main"
+etl = "db.loadDB.nosqlETL:main"
 
 [tool.uv]
 package = true
