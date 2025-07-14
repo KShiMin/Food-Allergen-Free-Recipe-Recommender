@@ -1,6 +1,5 @@
 from pymongo import MongoClient
 
-
 class MongoCRUD:
     
     def __init__(self):

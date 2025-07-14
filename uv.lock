@@ -170,7 +170,6 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "flask" },
-    { name = "mariadb" },
     { name = "pandas" },
     { name = "pip" },
     { name = "pymongo" },
@@ -180,7 +179,6 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "flask", specifier = ">=3.1.1" },
-    { name = "mariadb", specifier = ">=1.1.13" },
     { name = "pandas", specifier = ">=2.3.0" },
     { name = "pip", specifier = ">=25.1.1" },
     { name = "pymongo", specifier = ">=4.13.2" },
@@ -239,19 +237,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/dd/ce/3f144716a9f2cbf42aa86ebc8b085a184be25c80aa453eea17c294d239c1/language_data-1.3.0.tar.gz", hash = "sha256:7600ef8aa39555145d06c89f0c324bf7dab834ea0b0a439d8243762e3ebad7ec", size = 5129310, upload-time = "2024-11-19T10:21:37.912Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/5d/e9/5a5ffd9b286db82be70d677d0a91e4d58f7912bb8dd026ddeeb4abe70679/language_data-1.3.0-py3-none-any.whl", hash = "sha256:e2ee943551b5ae5f89cd0e801d1fc3835bb0ef5b7e9c3a4e8e17b2b214548fbf", size = 5385760, upload-time = "2024-11-19T10:21:36.005Z" },
-]
-
-[[package]]
-name = "mariadb"
-version = "1.1.13"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "packaging" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/b0/a0/0498c90f46940b6fd7f5c76d22df9f011849964e94e0b22fde26c42191c7/mariadb-1.1.13.tar.gz", hash = "sha256:3a0fd24fae2b9990dc13a0a427a43d4a5434cc2a8c3b260a27f40b7824719037", size = 111126, upload-time = "2025-07-11T09:55:11.147Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/02/16/583719e127774294d4af085a063b38f20407801cd9194a676334fb121edd/mariadb-1.1.13-cp313-cp313-win32.whl", hash = "sha256:36c644c13ecf3e38cb89f37f9bd054703760b94c881476492fe789801a063ce3", size = 185301, upload-time = "2025-07-11T09:55:03.486Z" },
-    { url = "https://files.pythonhosted.org/packages/1b/da/4170f5532813ffba2641f821ed23ed1f22fa3ff8d603e47c91b0776ff9b7/mariadb-1.1.13-cp313-cp313-win_amd64.whl", hash = "sha256:6ec51ad2e33312c397cfcc5e2bca59861f572d5e8880e025d43db9a5d472a3a9", size = 202105, upload-time = "2025-07-11T09:55:05.681Z" },
 ]
 
 [[package]]
