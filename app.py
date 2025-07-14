@@ -1,13 +1,11 @@
 # ui.py
-from flask import Flask, render_template, request, redirect, url_for, flash
-from flask import session, abort
+from flask import Flask, render_template, request, redirect, url_for, flash, session
 from flask_pymongo import PyMongo
 from db import get_db_connection
 import os
 from datetime import datetime
 from werkzeug.utils import secure_filename
 from bson import ObjectId
-from datetime import datetime, timedelta
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key'  # needed for flash messages
@@ -16,13 +14,19 @@ mongo = PyMongo(app)
 
 # where to store uploaded review images
 UPLOAD_FOLDER = os.path.join(os.getcwd(), 'static', 'uploads')
-ALLOWED_EXT = {'png','jpg','jpeg','gif', 'webp', 'mov', 'mp4', 'webm'}
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+ALLOWED_IMAGE_EXT = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+ALLOWED_VIDEO_EXT = {'mp4', 'mov', 'avi', 'mkv', 'webm', 'ogg'}
 
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-def allowed_file(filename, allowed_ext=ALLOWED_EXT):
+
+def allowed_file(filename, allowed_ext):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_ext
+
+
+# File size
+app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  
 
 
 # track per-user allergies
@@ -313,20 +317,20 @@ def add_review(recipe_id):
         return redirect(url_for('recipe_detail', recipe_id=recipe_id))
     
     description = request.form.get('description')
-    imgs = []
-    videos = []
+    imgs, videos = [], []
+
     # Handle image uploads
+    files = request.files.getlist("imgs")
     for file in request.files.getlist("imgs"):
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            imgs.append(filename)
-    # Handle video uploads 
-    for file in request.files.getlist("videos"):
-        if file and allowed_file(file.filename, {'mp4', 'webm', 'mov', 'avi'}):  # extend allowed_file for videos
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            videos.append(filename)
+        for file in files:
+            if file and allowed_file(file.filename, ALLOWED_IMAGE_EXT | ALLOWED_VIDEO_EXT):
+                filename = secure_filename(file.filename)
+                ext = filename.rsplit('.', 1)[1].lower()
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                if ext in ALLOWED_IMAGE_EXT:
+                    imgs.append(filename)
+                elif ext in ALLOWED_VIDEO_EXT:
+                    videos.append(filename)
     video_url = request.form.get('video_url')
     review = {
         "recipe_id": recipe_id,
@@ -334,7 +338,7 @@ def add_review(recipe_id):
         "username": session.get('username'),
         "description": description,
         "imgs": imgs,
-        "videos": videos,  # new field for uploaded videos
+        "videos": videos,
         "video_url": video_url,
         "created_at": datetime.utcnow()
     }
@@ -344,40 +348,48 @@ def add_review(recipe_id):
 
 @app.route('/review/<review_id>/edit', methods=['GET', 'POST'])
 def edit_review(review_id):
-    # Fetch the review by its _id from MongoDB
-    review = mongo.db.Reviews.find_one({'_id': ObjectId(review_id)})
-    if not review:
-        flash("Review not found.", "danger")
+    review = mongo.db.Reviews.find_one({"_id": ObjectId(review_id)})
+    if not review or str(review['user_id']) != str(session.get('user_id')):
+        flash("Unauthorized.", "danger")
         return redirect(url_for('homepage'))
-    # Only allow the author to edit
-    if review['user_id'] != session.get('user_id'):
-        abort(403)
     if request.method == 'POST':
-        new_desc = request.form.get('description')
-        new_video_url = request.form.get('video_url')
-        # Optionally handle image replacement
+        description = request.form.get('description')
+        video_url = request.form.get('video_url')
+        imgs, videos = [], []
+        files = request.files.getlist("imgs")
+        for file in files:
+            if file and allowed_file(file.filename, ALLOWED_IMAGE_EXT | ALLOWED_VIDEO_EXT):
+                filename = secure_filename(file.filename)
+                ext = filename.rsplit('.', 1)[1].lower()
+                file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+                if ext in ALLOWED_IMAGE_EXT:
+                    imgs.append(filename)
+                elif ext in ALLOWED_VIDEO_EXT:
+                    videos.append(filename)
         mongo.db.Reviews.update_one(
-            {'_id': ObjectId(review_id)},
-            {'$set': {'description': new_desc, 'video_url': new_video_url, 'edited_at': datetime.utcnow()}}
+            {"_id": ObjectId(review_id)},
+            {"$set": {
+                "description": description,
+                "video_url": video_url,
+                "imgs": imgs if imgs else review.get('imgs', []),
+                "videos": videos if videos else review.get('videos', []),
+                "updated_at": datetime.utcnow()
+            }}
         )
         flash("Review updated!", "success")
         return redirect(url_for('recipe_detail', recipe_id=review['recipe_id']))
-    # GET: Render a simple edit form
-    return render_template('edit_review.html', review=review)
+    return render_template("edit_review.html", review=review)
 
-@app.route('/review/<review_id>/delete', methods=['POST', 'GET'])
+@app.route('/review/<review_id>/delete', methods=['GET', 'POST'])
 def delete_review(review_id):
-    review = mongo.db.Reviews.find_one({'_id': ObjectId(review_id)})
-    if not review:
-        flash("Review not found.", "danger")
-        return redirect(url_for('homepage'))
-    # Only allow the author to delete
-    if review['user_id'] != session.get('user_id'):
-        abort(403)
-    recipe_id = review['recipe_id']
-    mongo.db.Reviews.delete_one({'_id': ObjectId(review_id)})
-    flash("Review deleted!", "info")
-    return redirect(url_for('recipe_detail', recipe_id=recipe_id))
+    review = mongo.db.Reviews.find_one({"_id": ObjectId(review_id)})
+    if review and str(review['user_id']) == str(session.get('user_id')):
+        recipe_id = review['recipe_id']
+        mongo.db.Reviews.delete_one({"_id": ObjectId(review_id)})
+        flash("Review deleted!", "info")
+        return redirect(url_for('recipe_detail', recipe_id=recipe_id))
+    flash("Unauthorized or review not found.", "danger")
+    return redirect(url_for('homepage'))
 
 
 

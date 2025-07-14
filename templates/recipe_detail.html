@@ -111,45 +111,47 @@
           </ol>
 
           <!-- Reviews Section -->
-          <h4 class="mt-4">Reviews</h4>
-          {% if session.get('user_id') %}
-            <form method="post" enctype="multipart/form-data" action="{{ url_for('add_review', recipe_id=recipe._id) }}">
-              <div class="mb-2">
-                <textarea name="description" class="form-control" required placeholder="Write your review here..."></textarea>
-              </div>
-              <div class="mb-2">
-                <input type="file" name="imgs" accept="image/*,video/*" multiple>
-              </div>
-              <div class="mb-2">
-                <input type="url" name="video_url" class="form-control" placeholder="Optional: Paste video link here">
-              </div>
-              <button type="submit" class="btn btn-primary">Submit Review</button>
-            </form>
-          {% else %}
-            <div class="alert alert-info">Log in to leave a review.</div>
-          {% endif %}
+<h4 class="mt-4">Reviews</h4>
+{% if session.get('user_id') %}
+  <form method="post" enctype="multipart/form-data" action="{{ url_for('add_review', recipe_id=recipe._id) }}">
+    <div class="mb-2">
+      <textarea name="description" class="form-control" required placeholder="Write your review here..."></textarea>
+    </div>
+    <div class="mb-2">
+      <input type="file" name="imgs" accept="image/*,video/*" multiple>
+    </div>
+    <div class="mb-2">
+      <input type="url" name="video_url" class="form-control" placeholder="Optional: Paste video link here">
+    </div>
+    <button type="submit" class="btn btn-primary">Submit Review</button>
+  </form>
+{% else %}
+  <div class="alert alert-info">Log in to leave a review.</div>
+{% endif %}
 
-          {% for review in reviews %}
+{% for review in reviews %}
   <div class="card my-3">
     <div class="card-body">
       <strong>{{ review.username }}</strong>
       <span class="text-muted small">{{ review.created_at.strftime('%Y-%m-%d %H:%M') if review.created_at else '' }}</span>
       <p>{{ review.description }}</p>
+      {# Images #}
       {% if review.imgs %}
         {% for img in review.imgs %}
-          <img src="{{ url_for('static', filename='uploads/' ~ img) }}" style="max-width:120px; max-height:120px;" class="me-2 mb-2">
+          <img src="{{ url_for('static', filename='uploads/' ~ img) }}"
+               style="max-width:120px; max-height:120px;" class="me-2 mb-2">
         {% endfor %}
       {% endif %}
-      {# Show uploaded video files #}
+      {# Videos #}
       {% if review.videos %}
         {% for vid in review.videos %}
-          <video controls style="max-width:300px; max-height:180px;" class="me-2 mb-2">
+          <video controls style="width:500px; height:300px; border-radius:12px;" class="me-2 mb-2">
             <source src="{{ url_for('static', filename='uploads/' ~ vid) }}">
             Your browser does not support the video tag.
           </video>
         {% endfor %}
       {% endif %}
-      {# Show online video links as embedded #}
+      {# Embedded YouTube #}
       {% if review.video_url %}
         {% set yt_id = None %}
         {% if 'youtu.be/' in review.video_url %}
@@ -159,13 +161,15 @@
         {% endif %}
         {% if yt_id %}
           <div class="ratio ratio-16x9 mb-2">
-            <iframe src="https://www.youtube.com/embed/{{ yt_id }}"
-                    title="YouTube video"
-                    allowfullscreen></iframe>
+            <iframe src="https://www.youtube.com/embed/{{ yt_id }}" title="YouTube video" allowfullscreen></iframe>
           </div>
         {% else %}
           <a href="{{ review.video_url }}" target="_blank">Video link</a>
         {% endif %}
+      {% endif %}
+      {% if review.user_id == session.get('user_id') %}
+        <a href="{{ url_for('edit_review', review_id=review._id|string) }}" class="btn btn-sm btn-link">Edit</a>
+        <a href="{{ url_for('delete_review', review_id=review._id|string) }}" class="btn btn-sm btn-link text-danger" onclick="return confirm('Delete this review?')">Delete</a>
       {% endif %}
     </div>
   </div>
