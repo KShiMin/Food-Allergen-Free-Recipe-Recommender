@@ -1,12 +1,13 @@
 # ui.py
 from flask import Flask, render_template, request, redirect, url_for, flash, session
 from pathlib import Path
-from datetime import datetime
+from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
 from bson import ObjectId
 from db.sql.db import get_db_connection
 from db.sql.initDB import initialize_database
 from db.nosql.nosql import MongoCRUD
+from app.caloric_utils import (compute_and_store_caloric_budget, get_remaining_calories, reset_weekly_meal_logs)
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key'  # needed for flash messages
@@ -44,6 +45,24 @@ ALL_ALLERGENS = [
     'wheat', 'sesame', 'fish'
 ]
 USER_ALLERGIES = {}  # username -> list of selected allergens
+
+@app.before_request
+def ensure_meal_log_table():
+    conn = get_db_connection()
+    cur  = conn.cursor()
+    cur.execute("""
+      CREATE TABLE IF NOT EXISTS meal_log (
+        id        INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id   INTEGER NOT NULL,
+        calories  INTEGER NOT NULL,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(user_id) REFERENCES user_profile(user_id)
+      );
+    """)
+    conn.commit()
+    cur.close()
+    conn.close()
+    
 @app.route('/edit_allergies', methods=['GET','POST'])
 def edit_allergies():
     user = session.get('username')
@@ -131,9 +150,14 @@ def profile():
     uid = session['user_id']
     conn = get_db_connection()
     cur = conn.cursor()
-    # fetch the user row
-    cur.execute("SELECT * FROM user_profile WHERE user_id=?", (uid,))
-    user = cur.fetchone()
+    cur.execute("SELECT * FROM user_profile WHERE user_id = ?", (uid,))
+    row = cur.fetchone()
+    remaining = None
+    if row:
+        user = dict(row)  
+        remaining = compute_and_store_caloric_budget(user)
+    else:
+        user = {}
     # fetch just the allergen names
     cur.execute("""
         SELECT a.allergen_name
@@ -175,7 +199,8 @@ def profile():
                            user=user,
                            allergens=allergens,
                            allergen_icons=allergen_icons,
-                           badge_colors=badge_colors)
+                           badge_colors=badge_colors,
+                           remaining_calories=remaining)
 # Edit profile (Update)
 @app.route('/profile/edit', methods=['GET','POST'])
 def edit_profile():
@@ -184,7 +209,7 @@ def edit_profile():
         flash("Please log in first.", "warning")
         return redirect(url_for('index'))
     conn = get_db_connection()
-    cur  = conn.cursor(dictionary=True)
+    cur  = conn.cursor()
     if request.method == 'POST':
         #fields
         new_height = request.form.get('height') or None
@@ -203,7 +228,6 @@ def edit_profile():
         """,
         (new_height, new_weight, new_gender, new_age, new_budget, new_level, uid)
     )
-        
         #update allergens
         selected = request.form.getlist('allergens')
         cur.execute("DELETE FROM user_allergen WHERE user_id = ?", (uid,))
@@ -291,12 +315,35 @@ def homepage():
     for recipe in recipes:
         recipe['prep_time_display'] = format_duration(recipe['prep_time'])
         recipe['cook_time_display'] = format_duration(recipe['cook_time'])
+    
+    remaining_calories = None
+    user_id = session.get('user_id')
+    if user_id:
+        conn = get_db_connection()
+        cur  = conn.cursor()
 
+        # 2) Fetch the SQL user row
+        cur.execute(
+            "SELECT * FROM user_profile WHERE user_id = ?",
+            (user_id,)
+        )
+        row = cur.fetchone()
+
+        # 3) If found, convert → dict and compute remaining
+        if row:
+            sql_user = dict(row)
+            remaining_calories = get_remaining_calories(sql_user)
+
+        # 4) Clean up
+        cur.close()
+        conn.close()
+            
     return render_template('homepage.html',
                             recipes=recipes,
                             user_allergies=allergies,
-                            cuisines = sorted([c for c in cuisines if c])
-    )
+                            cuisines = sorted([c for c in cuisines if c]),
+                            remaining_calories=remaining_calories
+                        )
 
 
 @app.route('/recipe/<int:recipe_id>')
@@ -459,6 +506,12 @@ def delete_review(review_id):
     flash("Unauthorized or review not found.", "danger")
     return redirect(url_for('homepage'))
 
+@app.cli.command('reset-logs')
+def reset_logs_command():
+    """Runs reset_weekly_meal_logs and prints how many entries were removed."""
+    from caloric_utils import reset_weekly_meal_logs
+    deleted = reset_weekly_meal_logs()
+    click.echo(f"reset_weekly_meal_logs: deleted {deleted} old meal logs.")
 
 @app.route('/logout')
 def logout():

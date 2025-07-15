@@ -122,6 +122,14 @@
       </form>
     </div>
 
+    {% if remaining_calories is not none %}
+      <div class="container mb-4">
+        <div class="alert alert-info text-center">
+          You have {{ remaining_calories }} kcal left this week.
+        </div>
+      </div>
+    {% endif %}
+
     <!-- RECIPE CARDS GRID -->
     <section class="py-5">
       <div class="container">
