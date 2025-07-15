@@ -168,7 +168,7 @@ def profile():
     allergens = [ r['allergen_name'] for r in cur.fetchall() ]
     cur.close()
     conn.close()
-    # map each allergen to a Font-Awesome icon and a Bootstrap color
+    # design for each allergen
     allergen_icons = {
         'Milk':            'fas fa-glass-whiskey',
         'Eggs':            'fas fa-egg',
@@ -180,7 +180,6 @@ def profile():
         'Soybean':         'fas fa-seedling',
         'Mustard':         'fas fa-seedling',
         'Celery':          'fas fa-leaf',
-        # …add more as needed…
     }
     badge_colors = {
         'Milk':            'primary',
@@ -193,7 +192,6 @@ def profile():
         'Soybean':         'light',
         'Mustard':         'warning',
         'Celery':          'success',
-        # …etc…
     }
     return render_template('profile.html',
                            user=user,
@@ -365,16 +363,35 @@ def recipe_detail(recipe_id):
     recipe['prep_time_display'] = format_duration(recipe['prep_time'])
     recipe['cook_time_display'] = format_duration(recipe['cook_time'])
 
-    # Map recipe ingredients to their respective name
-    recipe_ingredients = recipe['ingredients']
-    # recipe['ingredient_name'] = 
+    # Map recipe ingredients to their respective ingredient name from SQL table ingredient
+    conn = get_db_connection()
+    cur  = conn.cursor()
+
+    ingredients = []
+    for ing in recipe['ingredients']:
+        ingredient_id = str(ing.get('ingredient_id')).strip()
+        cur.execute("SELECT ingredient_name FROM ingredient WHERE ingredient_id = ?", (ingredient_id,))
+        row = cur.fetchone()
+        ingredient_name = row[0] if row else f"Unknown (id: {ingredient_id})"
+
+        ingredients.append({
+            'ingredient_name': ingredient_name,
+            'quantity': ing.get('quantity', ''),
+            'units': ing.get('units', ''),
+            'preparation_notes': ing.get('preparation_notes', '')
+        })
+
+    recipe['ingredients'] = ingredients
     
-    # Map review user_id with the respective username
-    # reviews = reviews['user_id']
-    # reviews['username'] = 
+    # Map review user_id with their respective user_name from SQL table user_profile
+    for review in reviews:
+        user_id = review.get('user_id')
+        cur.execute("SELECT user_name FROM user_profile WHERE user_id = ?", (user_id,))
+        row = cur.fetchone()
+        review['username'] = row[0] if row else f"Unknown (id: {user_id})"
+
     
-    # 2. MOCK: Add fake allergens and substitutions for demo only
-    # (remove these lines once your ETL inserts real data!)
+    # 2. Fetch the user's allergen
     if recipe:
         # Show these blocks even if recipe from DB doesn't have those fields
         recipe['ingredient_allergens'] = [
@@ -401,6 +418,9 @@ def recipe_detail(recipe_id):
                     'substitute': get_substitute_for_allergen(alg['name'])
                 }
                 break
+
+    cur.close()
+    conn.close()
 
     return render_template(
         "recipe_detail.html",
