@@ -10,7 +10,6 @@ CREATE TABLE IF NOT EXISTS user_profile (
     gender TEXT CHECK (gender IN ('male', 'female', 'prefer_not_to_say')),
     age INTEGER,
     caloric_budget INTEGER,
-    dietary_preferences TEXT,
     activity_level TEXT CHECK (activity_level IN ('sedentary', 'light', 'moderate', 'active', 'very_active'))
 );
 
@@ -50,8 +49,10 @@ CREATE TABLE IF NOT EXISTS ingredient_substitution (
 );
 
 
-INSERT INTO user_profile (user_name, user_password) VALUES ("Natalie", "password1");
-INSERT INTO user_profile (user_name, user_password) VALUES ("Shi Min", "password2");
+INSERT INTO user_profile (user_name, user_password, height, weight, gender, age, caloric_budget, activity_level) VALUES ("Natalie", "password1", 171, 60, 'female', 21, 2000, 'sedentary');
+INSERT INTO user_profile (user_name, user_password, height, weight, gender, age, caloric_budget, activity_level) VALUES ("Shi Min", "password2", 153, 40, 'female', 22, 1500, 'active');
+INSERT INTO user_profile (user_name, user_password, height, weight, gender, age, caloric_budget, activity_level) VALUES ("Yan Hye", "password3", 155, 45, 'female', 22, 1600, 'very_active');
+INSERT INTO user_profile (user_name, user_password, height, weight, gender, age, caloric_budget, activity_level) VALUES ("Sanders", "password4", 170, 70, 'male', 23, 3000, 'moderate');
 
 INSERT INTO allergen (allergen_id, allergen_name) VALUES (1, "Milk");
 INSERT INTO allergen (allergen_id, allergen_name) VALUES (2, "Eggs");
