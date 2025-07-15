@@ -68,6 +68,9 @@ INSERT INTO allergen (allergen_id, allergen_name) VALUES (10, "Celery");
 INSERT INTO user_allergen (user_id, allergen_id) VALUES (1, 1);
 INSERT INTO user_allergen (user_id, allergen_id) VALUES (1, 3);
 INSERT INTO user_allergen (user_id, allergen_id) VALUES (2, 8);
+INSERT INTO user_allergen (user_id, allergen_id) VALUES (3, 4);
+INSERT INTO user_allergen (user_id, allergen_id) VALUES (4, 5);
+INSERT INTO user_allergen (user_id, allergen_id) VALUES (4, 6);
 
 INSERT INTO ingredient (ingredient_id, ingredient_name, nutritional_info) VALUES ("1145", "Butter", 717);
 INSERT INTO ingredient (ingredient_id, ingredient_name, nutritional_info) VALUES ("9004", "Apple", 48);
