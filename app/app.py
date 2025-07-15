@@ -287,6 +287,14 @@ def delete_account():
     return render_template('delete_account.html')
 
 def format_duration(minutes):
+    """Convert stored prep_time or cook_time to proper time display
+
+    Args:
+        minutes (int): total minutes from database e.g. 70 
+
+    Returns:
+        string: formated time for display i.e. 1hr 10 mins 
+    """
     hours, mins = divmod(minutes, 60)
     parts = []
     if hours:
@@ -427,6 +435,7 @@ def add_review(recipe_id):
     video_url = request.form.get('video_url')
     
     review = {
+        "_id": f"{recipe_id}_{session['user_id']}",
         "recipe_id": recipe_id,
         "user_id": session['user_id'],
         "description": description,
@@ -444,7 +453,7 @@ def add_review(recipe_id):
 @app.route('/review/<review_id>/edit', methods=['GET', 'POST'])
 def edit_review(review_id):
     
-    review = mongo_crud.find_one('Reviews', {"_id": ObjectId(review_id)})
+    review = mongo_crud.find_one('Reviews', {"_id": review_id})
     
     if not review or str(review['user_id']) != str(session.get('user_id')):
         flash("Unauthorized.", "danger")
@@ -484,7 +493,7 @@ def edit_review(review_id):
         
         mongo_crud.update_one(
             "Reviews",
-            {"_id": ObjectId(review_id)},
+            {"_id": review_id},
             update_data
         )
 
@@ -496,11 +505,11 @@ def edit_review(review_id):
 @app.route('/review/<review_id>/delete', methods=['GET', 'POST'])
 def delete_review(review_id):
     
-    review = mongo_crud.find_one('Reviews', {"_id": ObjectId(review_id)})
+    review = mongo_crud.find_one('Reviews', {"_id": review_id})
 
     if review and str(review['user_id']) == str(session.get('user_id')):
         recipe_id = review['recipe_id']
-        mongo_crud.delete_one('Reviews', {"_id": ObjectId(review_id)})
+        mongo_crud.delete_one('Reviews', {"_id": review_id})
         flash("Review deleted!", "info")
         return redirect(url_for('recipe_detail', recipe_id=recipe_id))
     flash("Unauthorized or review not found.", "danger")

@@ -266,13 +266,18 @@
               {% set yt_id = review.video_url.split('watch?v=')[-1].split('&')[0] %}
             {% endif %}
             {% if yt_id %}
-              <div class="ratio ratio-16x9 mb-2">
-                <iframe src="https://www.youtube.com/embed/{{ yt_id }}" title="YouTube video" allowfullscreen></iframe>
-              </div>
+              <iframe
+                src="https://www.youtube.com/embed/{{ yt_id }}"
+                title="YouTube video"
+                allowfullscreen
+                style="width:300px; height:200px; border-radius:8px; display:inline-block; vertical-align:top;"
+                class="me-2 mb-2"
+              ></iframe>
             {% else %}
               <a href="{{ review.video_url }}" target="_blank">Video link</a>
             {% endif %}
           {% endif %}
+
 
           {# Edit/Delete Buttons at the bottom #}
           {% if review.user_id == session.get('user_id') %}

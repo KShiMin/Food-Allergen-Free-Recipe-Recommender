@@ -1,7 +1,7 @@
 recipe_id,user_id,description,rating,imgs,videos,video_url,created_at
 127,1,"So tender and sweet! My kids loved it.",5,applesauce_pork1.jpg,,"",2024-05-10T14:23:00
 127,2,"Very easy to prepare. I added extra cinnamon.",4,,"applesauce_pork_review.mp4","",2024-05-15T09:45:00
-177,3,"A refreshing twist on chicken salad!",5,cherry_chicken_salad.jpg,,"https://youtu.be/example1",2024-05-20T11:10:00
+177,3,"A refreshing twist on chicken salad!",5,cherry_chicken_salad.jpg,,"https://youtube.com/shorts/UVAzHjiMMEo?si=K9ZOz6076EnzPOXG",2024-05-20T11:10:00
 234,4,"Creamy and rich. Perfect for a special dinner.",5,risotto_figs.jpg,,"",2024-06-02T18:05:00
 238,2,"Unexpected combination but it works!",4,,"","",2024-06-05T12:15:00
 253,1,"A must-have summer salad. Light and delicious.",5,cucumber_watermelon.jpg,,"",2024-06-15T16:30:00

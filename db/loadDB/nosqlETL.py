@@ -134,9 +134,14 @@ class ETL:
         with open(review_csv_path, newline="", encoding="utf-8") as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
+                recipe_id = int(row["recipe_id"])
+                user_id = int(row["user_id"])
+                custom_id = f"{recipe_id}_{user_id}"
+
                 reviews.append({
-                    "recipe_id": int(row["recipe_id"]),
-                    "user_id": int(row["user_id"]),
+                    "_id": custom_id,
+                    "recipe_id": recipe_id,
+                    "user_id": user_id,
                     "description": row["description"],
                     "rating": int(row["rating"]),
                     "imgs": row["imgs"].split(",") if row["imgs"] else [],
@@ -145,6 +150,7 @@ class ETL:
                     "created_at": datetime.fromisoformat(row["created_at"])
                 })
         return reviews
+
     
     def run(self):
         recipes = self.build_recipe_documents()
