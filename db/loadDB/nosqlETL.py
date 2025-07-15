@@ -10,7 +10,7 @@ from db.nosql.nosql import MongoCRUD
 class ETL:
     
     BASE_DIR = Path(__file__).resolve().parent.parent.parent
-    CSV_PATH = BASE_DIR.joinpath('data', 'recipes_final.csv')
+    CSV_PATH = BASE_DIR.joinpath('data', 'recipes_final_v3.csv')
     
     def __init__(self, client):
         self.client = client
@@ -79,6 +79,7 @@ class ETL:
             "ingredients": ingredients,
             "instruction": instructions,
             "cusine_path": self.safe_value(first_item["cusine_path"]),
+            "calories": self.safe_value(first_item['calories'], fallback=None, cast=int),
             "img_src": self.safe_value(first_item["img_src"]),
             "video_url": self.safe_value(first_item.get("youtube_url", None)),            
         }
@@ -172,4 +173,7 @@ def main():
     mongo_client = MongoCRUD()
     etl = ETL(mongo_client)
     etl.run()
-    
+
+# Without uv run
+if __name__ == '__main__':
+    main()
