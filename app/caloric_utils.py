@@ -55,21 +55,18 @@ def compute_and_store_caloric_budget(user: dict) -> int:
 
     return weekly_cal
 
-def get_remaining_calories(user: dict) -> int:
-    """
-    Returns how many kcal the user has left in their current weekly budget.
-    Assumes `user['caloric_budget']` is up to date.
-    """
+def get_remaining_calories(user):
     now = datetime.now()
-    start = (now - timedelta(days=now.weekday())) \
-               .replace(hour=0, minute=0, second=0, microsecond=0)
+    start_dt = (now - timedelta(days=now.weekday())).replace(
+        hour=0, minute=0, second=0, microsecond=0)
+    start_str = start_dt.strftime("%Y-%m-%d %H:%M:%S")
 
     conn = get_db_connection()
     cur  = conn.cursor()
     cur.execute(
       "SELECT COALESCE(SUM(calories),0) AS total "
       "FROM meal_log WHERE user_id = ? AND timestamp >= ?",
-      (user['user_id'], start)
+      (user['user_id'], start_str)
     )
     total = cur.fetchone()['total']
     cur.close()
@@ -77,6 +74,7 @@ def get_remaining_calories(user: dict) -> int:
 
     budget = user['caloric_budget'] or 0
     return budget - total
+
 
 def reset_weekly_meal_logs() -> int:
     """

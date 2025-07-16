@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container py-5">
+  <h1>Your Weekly Budget</h1>
+  <div class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h5 class="card-title">Calories Remaining</h5>
+      <p class="display-4">{{ remaining_calories }} kcal</p>
+      <p class="text-muted">of {{ user.caloric_budget }} kcal</p>
+    </div>
+  </div>
+
+  <!-- New: list of saved recipes -->
+  <h2>Logged Meals This Week</h2>
+  {% if saved %}
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Recipe</th>
+          <th>Calories</th>
+          <th>When</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for entry in saved %}
+          <tr>
+            <td>
+              <a href="{{ url_for('recipe_detail', recipe_id=entry.id) }}">
+                {{ entry.name }}
+              </a>
+            </td>
+            <td>{{ entry.calories }} kcal</td>
+            <td>{{ entry.when.strftime('%Y-%m-%d %H:%M') }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <div class="alert alert-info">
+      You haven’t logged any meals this week.
+    </div>
+  {% endif %}
+
+  <a href="{{ url_for('homepage') }}" class="btn btn-secondary mt-3">
+    Back to Home
+  </a>
+</div>
+{% endblock %}

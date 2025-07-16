@@ -50,13 +50,19 @@ USER_ALLERGIES = {}  # username -> list of selected allergens
 def ensure_meal_log_table():
     conn = get_db_connection()
     cur  = conn.cursor()
+
+    # remove the old schema
+    cur.execute("DROP TABLE IF EXISTS meal_log;")
+
+    # recreate including recipe_id
     cur.execute("""
-      CREATE TABLE IF NOT EXISTS meal_log (
-        id        INTEGER PRIMARY KEY AUTOINCREMENT,
-        user_id   INTEGER NOT NULL,
-        calories  INTEGER NOT NULL,
-        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-        FOREIGN KEY(user_id) REFERENCES user_profile(user_id)
+      CREATE TABLE meal_log (
+        id         INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id    INTEGER NOT NULL,
+        recipe_id  INTEGER NOT NULL,
+        calories   INTEGER NOT NULL,
+        timestamp  DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(user_id)   REFERENCES user_profile(user_id)
       );
     """)
     conn.commit()
@@ -350,6 +356,99 @@ def homepage():
                             cuisines = sorted([c for c in cuisines if c]),
                             remaining_calories=remaining_calories
                         )
+
+@app.route('/dashboard')
+def dashboard():
+    user_id = session.get('user_id')
+    if not user_id:
+        return redirect(url_for('login'))
+
+    # 1) fetch user profile
+    conn = get_db_connection()
+    cur  = conn.cursor()
+    cur.execute("SELECT * FROM user_profile WHERE user_id = ?", (user_id,))
+    row = cur.fetchone()
+    if not row:
+        cur.close()
+        conn.close()
+        return redirect(url_for('logout'))
+
+    user = dict(row)
+    # 2) calculate remaining
+    remaining_calories = get_remaining_calories(user)
+
+    # 3) fetch this week’s logs
+    start = (datetime.now() - timedelta(days=datetime.now().weekday())) \
+              .replace(hour=0, minute=0, second=0, microsecond=0)
+    cur.execute(
+        "SELECT recipe_id, calories, timestamp "
+        "FROM meal_log "
+        "WHERE user_id = ? AND timestamp >= ? "
+        "ORDER BY timestamp DESC",
+        (user_id, start)
+    )
+    logs = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    # 4) enrich logs with recipe names from Mongo
+    mongo = MongoCRUD()
+    saved = []
+    for recipe_id, cals, ts in logs:
+        rec = mongo.find_one("Recipes", {"_id": recipe_id})
+        name = rec.get("name") if rec else f"(#{recipe_id})"
+        saved.append({
+            "id":        recipe_id,
+            "name":      name,
+            "calories":  cals,
+            "when":      ts
+        })
+
+    return render_template(
+        'dashboard.html',
+        remaining_calories=remaining_calories,
+        user=user,
+        saved=saved
+    ) 
+
+@app.route('/save_recipe/<int:recipe_id>', methods=['POST'])
+def save_recipe(recipe_id):
+    user_id = session.get('user_id')
+    if not user_id:
+        flash('Please log in to save recipes.', 'warning')
+        return redirect(url_for('login'))
+
+    # Fetch from Mongo
+    recipe = mongo_crud.find_one("Recipes", {'_id': recipe_id})
+    if not recipe:
+        flash('Recipe not found.', 'danger')
+        return redirect(url_for('homepage'))
+
+    calories = recipe.get('calories', 0)
+
+    conn = get_db_connection()
+    cur  = conn.cursor()
+
+    # 1) Insert the log
+    cur.execute("""
+        INSERT INTO meal_log (user_id, recipe_id, calories, timestamp)
+        VALUES (?, ?, ?, ?)
+    """, (user_id, recipe_id, calories, datetime.now()))
+    conn.commit()
+
+    # 2) Subtract from the user_profile.caloric_budget
+    cur.execute("""
+        UPDATE user_profile
+           SET caloric_budget = caloric_budget - ?
+         WHERE user_id = ?
+    """, (calories, user_id))
+    conn.commit()
+
+    cur.close()
+    conn.close()
+
+    return redirect(url_for('dashboard'))
+
 
 
 @app.route('/recipe/<int:recipe_id>')
