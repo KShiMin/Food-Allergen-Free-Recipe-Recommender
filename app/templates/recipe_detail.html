@@ -115,14 +115,14 @@
               <strong>⚠️ Warning!</strong> You are allergic to
               <span class="text-danger">
                 {% if allergy_warning.allergen | length == 1 %}
-                {{ allergy_warning.allergen[0] }}
+                  {{ allergy_warning.allergen[0] }}
                 {% elif allergy_warning.allergen | length > 1 %}
-                {% for alg in allergy_warning.allergen %}
-                {{ alg }}{% if not loop.last %},{% endif %}
-                {% endfor %}
+                  {% for alg in allergy_warning.allergen %}
+                    {{ alg }}{% if not loop.last %},{% endif %}
+                  {% endfor %}
                 {% endif %}
               </span>.
-              Please be aware of the Ingredient Allergens and use the corresponding Ingredient Substitutions instead.
+              Please be aware of the Ingredient Allergens and use the corresponding Ingredient Substitutes instead.
             </div>
             {% elif not allergy_warning %}
             <div class="alert alert-success border-success my-3">
@@ -131,7 +131,7 @@
             {% endif %}
 
           <!-- Ingredient Allergens block -->
-          {% if allergy_warning.ingredient_allergen %}
+          <!-- {% if allergy_warning.ingredient_allergen %}
             <h5 class="mt-4 text-danger">Ingredient Allergens</h5>
             <ul>
               {% for ing_allergen in allergy_warning.ingredient_allergen %}
@@ -142,8 +142,8 @@
             </ul>
           {% endif %}
 
-          <!-- Ingredient Substitutions block -->
-          {% if allergy_warning.ingredient_substitution %}
+          Ingredient Substitutions block -->
+          <!-- {% if allergy_warning.ingredient_substitution %}
             <h5 class="mt-4 text-warning">Substitutions</h5>
             <ul>
               {% for ing in allergy_warning.ingredient_substitution %}
@@ -151,7 +151,36 @@
               {% endfor %}
             </ul>
           {% endif %}
-          </div>
+          </div> -->
+
+          <!-- Ingredient Allergen and Substitution Table -->
+          {% if allergy_warning and allergy_warning.ingredient_allergen %}
+          <table class="table table-bordered table-sm mt-2">
+            <thead>
+              <tr class="table-active">
+                <th class="text-danger">Ingredient Allergen</th>
+                <th class="text-warning">Ingredient Substitute</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for ing_allergen in allergy_warning.ingredient_allergen %}
+              <tr>
+                <td>{{ ing_allergen }}</td>
+                <td>
+                  {% for sub in allergy_warning.ingredient_substitution %}
+                    {% if sub.ingredient == ing_allergen %}
+                      {{ sub.substitute }}
+                    {% endif %}
+                  {% endfor %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% endif %}
+
+        </div>
+
 
           <!-- Directions -->
           <h4 class="mt-4">Directions</h4>

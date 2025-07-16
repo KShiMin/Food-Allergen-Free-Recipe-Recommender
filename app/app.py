@@ -463,31 +463,6 @@ def recipe_detail(recipe_id):
         allergy_warning = None
 
 
-    # if recipe:
-    #     # Show these blocks even if recipe from DB doesn't have those fields
-    #     recipe['ingredient_allergens'] = [
-    #         {"name": "Eggs", "description": "May contain traces of eggs"},
-    #         {"name": "Milk"}
-    #     ]
-    #     recipe['ingredient_substitutions'] = [
-    #         {"ingredient": "Milk", "substitute": "Soy Milk"},
-    #         {"ingredient": "Butter", "substitute": "Margarine"}
-    #     ]
-
-    # MOCK_USER_ALLERGIES = ["Eggs", "Milk"]
-    # def get_substitute_for_allergen(allergen):
-    #     # Just match to mock above
-    #     subs = {"Eggs": "Egg Replacer", "Milk": "Soy Milk"}
-    #     return subs.get(allergen, "See Substitutions")
-    # if recipe:
-    #     for alg in recipe['ingredient_allergens']:
-    #         if alg['name'] in MOCK_USER_ALLERGIES:
-    #             allergy_warning = {
-    #                 'allergen': alg['name'],
-    #                 'substitute': get_substitute_for_allergen(alg['name'])
-    #             }
-    #             break
-
     cur.close()
     conn.close()
 
