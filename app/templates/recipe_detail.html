@@ -143,11 +143,11 @@
           {% endif %}
 
           <!-- Ingredient Substitutions block -->
-          {% if recipe.ingredient_substitutions %}
+          {% if allergy_warning.ingredient_substitution %}
             <h5 class="mt-4 text-warning">Substitutions</h5>
             <ul>
-              {% for sub in recipe.ingredient_substitutions %}
-                <li>{{ sub.ingredient }} → {{ sub.substitute }}</li>
+              {% for ing in allergy_warning.ingredient_substitution %}
+                <li>{{ ing.ingredient }} → {{ ing.substitute }}</li>
               {% endfor %}
             </ul>
           {% endif %}

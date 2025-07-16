@@ -419,15 +419,11 @@ def recipe_detail(recipe_id):
     ing_allergens = cur.fetchall()
     ing_allergens_ids = [row[0] for row in ing_allergens]
 
-    print("id:", ing_allergens_ids)
-
     # Find the ingredient_allergens that are in the specific recipe
     recipe_ingredient_ids = set(ingredient_ids)
     allergen_ingredient_ids = set(ing_allergens_ids)
 
     common_ingredient_ids = list(recipe_ingredient_ids.intersection(allergen_ingredient_ids))
-    for i in common_ingredient_ids:
-        print(i)
     
     # Get the ingredient allergen names from SQL table
     if common_ingredient_ids:
@@ -443,6 +439,30 @@ def recipe_detail(recipe_id):
         ing_allergen_names = cur.fetchall()
         common_allergic_ingredient_names = [row[0] for row in ing_allergen_names]
 
+        # Get the substitutions for ingredient allergens
+        cur.execute(f"""
+                    SELECT i1.ingredient_name, i2.ingredient_name
+                    FROM ingredient_substitution s
+                    JOIN ingredient i1 ON s.original_ingredient_id = i1.ingredient_id
+                    JOIN ingredient i2 ON s.substitute_ingredient_id = i2.ingredient_id
+                    WHERE s.original_ingredient_id IN ({placeholders_for_common})
+                    """, common_ingredient_ids)
+        substitution_rows = cur.fetchall()
+        ingredient_substitutions = [
+            {"ingredient": row[0], "substitute": row[1]} for row in substitution_rows
+        ]
+
+
+        # 3. Allergy warning logic
+        allergy_warning = {
+            'allergen': user_allergens_names,
+            'ingredient_allergen': common_allergic_ingredient_names,
+            'ingredient_substitution': ingredient_substitutions
+        }
+    else:
+        allergy_warning = None
+
+
     # if recipe:
     #     # Show these blocks even if recipe from DB doesn't have those fields
     #     recipe['ingredient_allergens'] = [
@@ -453,16 +473,6 @@ def recipe_detail(recipe_id):
     #         {"ingredient": "Milk", "substitute": "Soy Milk"},
     #         {"ingredient": "Butter", "substitute": "Margarine"}
     #     ]
-
-    # 3. Allergy warning logic
-    
-
-        allergy_warning = {
-            'allergen': user_allergens_names,
-            'ingredient_allergen': common_allergic_ingredient_names
-        }
-    else:
-        allergy_warning = None
 
     # MOCK_USER_ALLERGIES = ["Eggs", "Milk"]
     # def get_substitute_for_allergen(allergen):
