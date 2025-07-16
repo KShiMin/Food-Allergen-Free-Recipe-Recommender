@@ -48,6 +48,15 @@ CREATE TABLE IF NOT EXISTS ingredient_substitution (
     FOREIGN KEY (substitute_ingredient_id) REFERENCES ingredient(ingredient_id)
 );
 
+CREATE TABLE IF NOT EXISTS meal_log (
+    log_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER NOT NULL,
+    recipe_id TEXT NOT NULL,
+    calories INTEGER NOT NULL,
+    timestamp DATETIME NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES user_profile(user_id)
+);
+
 
 INSERT INTO user_profile (user_name, user_password, height, weight, gender, age, caloric_budget, activity_level) VALUES ("Natalie", "password1", 171, 60, 'female', 21, 2000, 'sedentary');
 INSERT INTO user_profile (user_name, user_password, height, weight, gender, age, caloric_budget, activity_level) VALUES ("Shi Min", "password2", 153, 40, 'female', 22, 1500, 'active');
