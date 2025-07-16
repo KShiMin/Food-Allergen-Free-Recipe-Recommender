@@ -50,7 +50,6 @@ USER_ALLERGIES = {}  # username -> list of selected allergens
 def edit_allergies():
     user = session.get('username')
     if not user:
-        flash('Please log in first.', 'warning')
         return redirect(url_for('index'))
     if request.method == 'POST':
         # grab all the checked boxes
@@ -172,7 +171,7 @@ def profile():
         'Tree Nuts':       'dark',
         'Peanuts':         'secondary',
         'Wheat':           'success',
-        'Soybean':         'light',
+        'Soybean':         'primary',
         'Mustard':         'warning',
         'Celery':          'success',
     }
@@ -187,7 +186,6 @@ def profile():
 def edit_profile():
     uid = session.get('user_id')
     if not uid:
-        flash("Please log in first.", "warning")
         return redirect(url_for('index'))
     conn = get_db_connection()
     cur  = conn.cursor()
@@ -402,13 +400,11 @@ def dashboard():
 def save_recipe(recipe_id):
     user_id = session.get('user_id')
     if not user_id:
-        flash('Please log in to save recipes.', 'warning')
         return redirect(url_for('login'))
 
     # Fetch from Mongo
     recipe = mongo_crud.find_one("Recipes", {'_id': recipe_id})
     if not recipe:
-        flash('Recipe not found.', 'danger')
         return redirect(url_for('homepage'))
 
     calories = recipe.get('calories', 0)
@@ -559,7 +555,6 @@ def recipe_detail(recipe_id):
 @app.route('/recipe/<int:recipe_id>/review', methods=['POST'])
 def add_review(recipe_id):
     if 'user_id' not in session:
-        flash("Please log in to submit a review.", "warning")
         return redirect(url_for('recipe_detail', recipe_id=recipe_id))
     
     description = request.form.get('description')
@@ -594,7 +589,6 @@ def add_review(recipe_id):
     }
     mongo_crud.insert('Reviews', review)
     
-    flash("Review added!", "success")
     return redirect(url_for('recipe_detail', recipe_id=recipe_id))
 
 @app.route('/review/<review_id>/edit', methods=['GET', 'POST'])
@@ -603,7 +597,6 @@ def edit_review(review_id):
     review = mongo_crud.find_one('Reviews', {"_id": review_id})
     
     if not review or str(review['user_id']) != str(session.get('user_id')):
-        flash("Unauthorized.", "danger")
         return redirect(url_for('homepage'))
     
     if request.method == 'POST':
@@ -644,7 +637,6 @@ def edit_review(review_id):
             update_data
         )
 
-        flash("Review updated!", "success")
         return redirect(url_for('recipe_detail', recipe_id=review['recipe_id']))
     return render_template("edit_review.html", review=review)
 
@@ -657,9 +649,7 @@ def delete_review(review_id):
     if review and str(review['user_id']) == str(session.get('user_id')):
         recipe_id = review['recipe_id']
         mongo_crud.delete_one('Reviews', {"_id": review_id})
-        flash("Review deleted!", "info")
         return redirect(url_for('recipe_detail', recipe_id=recipe_id))
-    flash("Unauthorized or review not found.", "danger")
     return redirect(url_for('homepage'))
 
 @app.cli.command('reset-logs')
