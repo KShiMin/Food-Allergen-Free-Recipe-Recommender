@@ -30,7 +30,13 @@
               </a>
             </td>
             <td>{{ entry.calories }} kcal</td>
-            <td>{{ entry.when.strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>
+              {% if entry.when %}
+                {{ entry.when.strftime('%d-%b-%y %H:%M') }}
+              {% else %}
+                -
+              {% endif %}
+            </td>
           </tr>
         {% endfor %}
       </tbody>
