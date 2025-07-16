@@ -405,25 +405,43 @@ def recipe_detail(recipe_id):
     user_allergens_ids = [row[0] for row in user_allergens]
     user_allergens_names = [row[1] for row in user_allergens]
 
-    # Get ingredient allergens
+    # Get user's ingredient allergens
     if not isinstance(user_allergens_ids, (tuple, list)):
         user_allergens_ids = (user_allergens_ids,) # Make it a tuple if it's a single item
     placeholders = ','.join(['?'] * len(user_allergens_ids)) # Construct the placeholders for the IN clause
 
     cur.execute(f"""
-        SELECT i.ingredient_name, i.ingredient_id
+        SELECT i.ingredient_id
         FROM ingredient i
         JOIN ingredient_allergen ia ON i.ingredient_id = ia.ingredient_id
         WHERE ia.allergen_id IN ({placeholders})
     """, user_allergens_ids)
     ing_allergens = cur.fetchall()
-    ing_allergens_ids = [row[1] for row in ing_allergens]
-    ing_allergens_names = [row[0] for row in ing_allergens]
+    ing_allergens_ids = [row[0] for row in ing_allergens]
 
     print("id:", ing_allergens_ids)
-    print("name:", ing_allergens_names)
-    for i in ingredient_ids:
+
+    # Find the ingredient_allergens that are in the specific recipe
+    recipe_ingredient_ids = set(ingredient_ids)
+    allergen_ingredient_ids = set(ing_allergens_ids)
+
+    common_ingredient_ids = list(recipe_ingredient_ids.intersection(allergen_ingredient_ids))
+    for i in common_ingredient_ids:
         print(i)
+    
+    # Get the ingredient allergen names from SQL table
+    if common_ingredient_ids:
+        if not isinstance(common_ingredient_ids, (tuple, list)):
+            common_ingredient_ids = (common_ingredient_ids,)
+        placeholders_for_common = ','.join(['?'] * len(common_ingredient_ids))
+
+        cur.execute(f"""
+                    SELECT ingredient_name 
+                    FROM ingredient
+                    WHERE ingredient_id IN ({placeholders_for_common})
+                    """, common_ingredient_ids)
+        ing_allergen_names = cur.fetchall()
+        common_allergic_ingredient_names = [row[0] for row in ing_allergen_names]
 
     # if recipe:
     #     # Show these blocks even if recipe from DB doesn't have those fields
@@ -441,7 +459,7 @@ def recipe_detail(recipe_id):
 
     allergy_warning = {
         'allergen': user_allergens_names,
-        'ingredient_allergen': ing_allergens_names
+        'ingredient_allergen': common_allergic_ingredient_names
     }
 
     # MOCK_USER_ALLERGIES = ["Eggs", "Milk"]
