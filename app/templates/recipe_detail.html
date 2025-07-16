@@ -110,19 +110,20 @@
 
           <!-- Allergy warning directly under ingredients -->
           {% if allergy_warning %}
-          <div class="alert alert-danger border-danger my-3" style="font-weight:bold;">
-            <strong>⚠️ Warning!</strong> You are allergic to
-            <span class="text-danger">
-              {% if allergy_warning.allergen | length == 1 %}
+          <div class="alert alert-danger border-danger my-3">
+            <div style="font-weight:bold;">
+              <strong>⚠️ Warning!</strong> You are allergic to
+              <span class="text-danger">
+                {% if allergy_warning.allergen | length == 1 %}
                 {{ allergy_warning.allergen[0] }}
-              {% elif allergy_warning.allergen | length > 1 %}
+                {% elif allergy_warning.allergen | length > 1 %}
                 {% for alg in allergy_warning.allergen %}
-                  {{ alg }}{% if not loop.last %},{% endif %}
+                {{ alg }}{% if not loop.last %},{% endif %}
                 {% endfor %}
-              {% endif %}
-            </span>.
-            Please be aware of the Ingredient Allergens and use the corresponding Ingredient Substitutions instead.
-            <!-- </div> -->
+                {% endif %}
+              </span>.
+              Please be aware of the Ingredient Allergens and use the corresponding Ingredient Substitutions instead.
+            </div>
             {% elif not allergy_warning %}
             <div class="alert alert-success border-success my-3">
               <strong>✅ Good news!</strong> You are not allergic to any ingredients in this recipe!
@@ -130,13 +131,12 @@
             {% endif %}
 
           <!-- Ingredient Allergens block -->
-          {% if recipe.ingredient_allergens %}
+          {% if allergy_warning.ingredient_allergen %}
             <h5 class="mt-4 text-danger">Ingredient Allergens</h5>
             <ul>
-              {% for allergen in recipe.ingredient_allergens %}
+              {% for ing_allergen in allergy_warning.ingredient_allergen %}
                 <li>
-                  {{ allergen.name }}
-                  {% if allergen.description %} — {{ allergen.description }}{% endif %}
+                  {{ ing_allergen }}
                 </li>
               {% endfor %}
             </ul>

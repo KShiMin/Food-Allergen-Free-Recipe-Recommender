@@ -405,9 +405,25 @@ def recipe_detail(recipe_id):
     user_allergens_ids = [row[0] for row in user_allergens]
     user_allergens_names = [row[1] for row in user_allergens]
 
-    print("id:",user_allergens_ids)
-    print("name:",user_allergens_names)
+    # Get ingredient allergens
+    if not isinstance(user_allergens_ids, (tuple, list)):
+        user_allergens_ids = (user_allergens_ids,) # Make it a tuple if it's a single item
+    placeholders = ','.join(['?'] * len(user_allergens_ids)) # Construct the placeholders for the IN clause
 
+    cur.execute(f"""
+        SELECT i.ingredient_name, i.ingredient_id
+        FROM ingredient i
+        JOIN ingredient_allergen ia ON i.ingredient_id = ia.ingredient_id
+        WHERE ia.allergen_id IN ({placeholders})
+    """, user_allergens_ids)
+    ing_allergens = cur.fetchall()
+    ing_allergens_ids = [row[1] for row in ing_allergens]
+    ing_allergens_names = [row[0] for row in ing_allergens]
+
+    print("id:", ing_allergens_ids)
+    print("name:", ing_allergens_names)
+    for i in ingredient_ids:
+        print(i)
 
     # if recipe:
     #     # Show these blocks even if recipe from DB doesn't have those fields
@@ -420,13 +436,14 @@ def recipe_detail(recipe_id):
     #         {"ingredient": "Butter", "substitute": "Margarine"}
     #     ]
 
-    # 3. Allergy warning logic as before
-
-
+    # 3. Allergy warning logic
     allergy_warning = None
+
     allergy_warning = {
-        'allergen': user_allergens_names
+        'allergen': user_allergens_names,
+        'ingredient_allergen': ing_allergens_names
     }
+
     # MOCK_USER_ALLERGIES = ["Eggs", "Milk"]
     # def get_substitute_for_allergen(allergen):
     #     # Just match to mock above
