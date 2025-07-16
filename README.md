@@ -1,15 +1,8 @@
-# Food-Allergen-Free-Recipe-Recommender
-SIT INF2003 Database System Project. This project, Food Allergen Free Recipe Recommender, is a tailored recipe application designed to provide safe, personalised and delicious recipes that take into account individuals with any food allergies or dietary restrictions.
+# 🥗 Food Allergen Free Recipe Recommender
+The Food Allergen Free Recipe Recommender is a tailored recipe application designed to provide safe, personalised, and delicious recipes for individuals with food allergies or dietary restrictions.
 
-# 📗 Allergen-Free Recipes System
-
-This project provides a complete recipe management system, including:
-- ETL pipeline to populate recipe and review data into MongoDB.
-- Web user interface to browse and manage recipes.
-
----
-
-## 🟢 Prerequisites
+## 📋 Prerequisites
+Before you begin, ensure you have the following installed on your system:
 
 - **Python 3.10 or newer**
 - **MongoDB** installed and running locally (default port: `27017`)
@@ -21,14 +14,20 @@ If you do not have `uv` installed, you can install it using pip:
 pip install uv
 ```
 
-### Setup Guide
-## Dependencies Installation
+## Setup Guide
+### Virtual Environment
+Set up a Virtual Environment using:
+```bash
+uv venv
+```
+### Install Dependencies
 ```bash
 uv pip install .
 ```
 
-### 📂 Populating the Database (ETL)
+### 🗄️ Populating noSQL Database (ETL)
 Before starting the application, you must populate the NoSQL data.
+<b>Make sure your database server is running and configured correctly before executing this step.</b>
 
 Run the ETL script:
 ```bash
@@ -41,7 +40,6 @@ This script will:
 * Transform the data as needed
 * Load the data into your NoSQL database
 
-Make sure your database server is running and configured correctly before executing this step.
 
 ### 🌐 Running the Web Application
 After the ETL step completes successfully, you can start the web application:
@@ -49,3 +47,8 @@ After the ETL step completes successfully, you can start the web application:
 ```bash
 uv run ui
 ```
+This starts the web interface, where you can:
+
+- Select your allergens
+- Browse safe recipes
+- View alternative ingredient recommendations
