@@ -71,17 +71,13 @@ def index():
 def login():
     username = request.form.get('username', '').strip()
     password = request.form.get('password', '')
-    print("[DEBUG] Connecting to SQL...")
     conn = get_db_connection()
-    print("[DEBUG] Connection established.")
     cursor = conn.cursor()
-    print("[DEBUG] Executing SELECT...")
     cursor.execute(
         "SELECT user_id, user_password FROM user_profile WHERE user_name = ?",
         (username,)
     )
     row = cursor.fetchone()
-    print("[DEBUG] Query done.")
     cursor.close()
     conn.close()
     if row and row['user_password'] == password:

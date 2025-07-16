@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS meal_log (
     recipe_id TEXT NOT NULL,
     calories INTEGER NOT NULL,
     timestamp DATETIME NOT NULL,
-    FOREIGN KEY (user_id) REFERENCES user_profile(user_id)
+    FOREIGN KEY (user_id) REFERENCES user_profile(user_id) ON DELETE CASCADE
 );
 
 
