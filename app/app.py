@@ -367,9 +367,11 @@ def recipe_detail(recipe_id):
     conn = get_db_connection()
     cur  = conn.cursor()
 
+    ingredient_ids = []
     ingredients = []
     for ing in recipe['ingredients']:
         ingredient_id = str(ing.get('ingredient_id')).strip()
+        ingredient_ids.append(ingredient_id)
         cur.execute("SELECT ingredient_name FROM ingredient WHERE ingredient_id = ?", (ingredient_id,))
         row = cur.fetchone()
         ingredient_name = row[0] if row else f"Unknown (id: {ingredient_id})"
@@ -391,33 +393,53 @@ def recipe_detail(recipe_id):
         review['username'] = row[0] if row else f"Unknown (id: {user_id})"
 
     
-    # 2. Fetch the user's allergen
-    if recipe:
-        # Show these blocks even if recipe from DB doesn't have those fields
-        recipe['ingredient_allergens'] = [
-            {"name": "Eggs", "description": "May contain traces of eggs"},
-            {"name": "Milk"}
-        ]
-        recipe['ingredient_substitutions'] = [
-            {"ingredient": "Milk", "substitute": "Soy Milk"},
-            {"ingredient": "Butter", "substitute": "Margarine"}
-        ]
+    # 2. Get for user's allergens, ingredients and the corresponding substitutions
+    user_id = session.get('user_id')
+    cur.execute("""
+        SELECT a.allergen_id, a.allergen_name
+        FROM user_allergen ua
+        JOIN allergen a ON ua.allergen_id = a.allergen_id
+        WHERE ua.user_id = ?
+    """, (user_id,))
+    user_allergens = cur.fetchall()
+    user_allergens_ids = [row[0] for row in user_allergens]
+    user_allergens_names = [row[1] for row in user_allergens]
 
-    # 3. Allergy warning logic as before (using mock user's allergies)
+    print("id:",user_allergens_ids)
+    print("name:",user_allergens_names)
+
+
+    # if recipe:
+    #     # Show these blocks even if recipe from DB doesn't have those fields
+    #     recipe['ingredient_allergens'] = [
+    #         {"name": "Eggs", "description": "May contain traces of eggs"},
+    #         {"name": "Milk"}
+    #     ]
+    #     recipe['ingredient_substitutions'] = [
+    #         {"ingredient": "Milk", "substitute": "Soy Milk"},
+    #         {"ingredient": "Butter", "substitute": "Margarine"}
+    #     ]
+
+    # 3. Allergy warning logic as before
+
+
     allergy_warning = None
-    MOCK_USER_ALLERGIES = ["Eggs", "Milk"]
-    def get_substitute_for_allergen(allergen):
-        # Just match to mock above
-        subs = {"Eggs": "Egg Replacer", "Milk": "Soy Milk"}
-        return subs.get(allergen, "See Substitutions")
-    if recipe:
-        for alg in recipe['ingredient_allergens']:
-            if alg['name'] in MOCK_USER_ALLERGIES:
-                allergy_warning = {
-                    'allergen': alg['name'],
-                    'substitute': get_substitute_for_allergen(alg['name'])
-                }
-                break
+    allergy_warning = {
+        'allergen': user_allergens_names
+    }
+    # MOCK_USER_ALLERGIES = ["Eggs", "Milk"]
+    # def get_substitute_for_allergen(allergen):
+    #     # Just match to mock above
+    #     subs = {"Eggs": "Egg Replacer", "Milk": "Soy Milk"}
+    #     return subs.get(allergen, "See Substitutions")
+    # if recipe:
+    #     for alg in recipe['ingredient_allergens']:
+    #         if alg['name'] in MOCK_USER_ALLERGIES:
+    #             allergy_warning = {
+    #                 'allergen': alg['name'],
+    #                 'substitute': get_substitute_for_allergen(alg['name'])
+    #             }
+    #             break
 
     cur.close()
     conn.close()

@@ -110,12 +110,24 @@
 
           <!-- Allergy warning directly under ingredients -->
           {% if allergy_warning %}
-            <div class="alert alert-danger border-danger my-3" style="font-weight:bold;">
-              <strong>Warning!</strong> You are allergic to
-              <span class="text-danger">{{ allergy_warning.allergen }}</span>.
-              Please substitute with: <span class="fw-bold">{{ allergy_warning.substitute }}</span>
+          <div class="alert alert-danger border-danger my-3" style="font-weight:bold;">
+            <strong>⚠️ Warning!</strong> You are allergic to
+            <span class="text-danger">
+              {% if allergy_warning.allergen | length == 1 %}
+                {{ allergy_warning.allergen[0] }}
+              {% elif allergy_warning.allergen | length > 1 %}
+                {% for alg in allergy_warning.allergen %}
+                  {{ alg }}{% if not loop.last %},{% endif %}
+                {% endfor %}
+              {% endif %}
+            </span>.
+            Please be aware of the Ingredient Allergens and use the corresponding Ingredient Substitutions instead.
+            <!-- </div> -->
+            {% elif not allergy_warning %}
+            <div class="alert alert-success border-success my-3">
+              <strong>✅ Good news!</strong> You are not allergic to any ingredients in this recipe!
             </div>
-          {% endif %}
+            {% endif %}
 
           <!-- Ingredient Allergens block -->
           {% if recipe.ingredient_allergens %}
@@ -139,6 +151,7 @@
               {% endfor %}
             </ul>
           {% endif %}
+          </div>
 
           <!-- Directions -->
           <h4 class="mt-4">Directions</h4>
