@@ -3,7 +3,6 @@ from flask import Flask, render_template, request, redirect, url_for, flash, ses
 from pathlib import Path
 from datetime import datetime, timedelta
 from werkzeug.utils import secure_filename
-from bson import ObjectId
 from db.sql.db import get_db_connection
 from db.sql.initDB import initialize_database
 from db.nosql.nosql import MongoCRUD
