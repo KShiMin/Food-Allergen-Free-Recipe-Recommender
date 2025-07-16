@@ -455,12 +455,14 @@ def recipe_detail(recipe_id):
     #     ]
 
     # 3. Allergy warning logic
-    allergy_warning = None
+    
 
-    allergy_warning = {
-        'allergen': user_allergens_names,
-        'ingredient_allergen': common_allergic_ingredient_names
-    }
+        allergy_warning = {
+            'allergen': user_allergens_names,
+            'ingredient_allergen': common_allergic_ingredient_names
+        }
+    else:
+        allergy_warning = None
 
     # MOCK_USER_ALLERGIES = ["Eggs", "Milk"]
     # def get_substitute_for_allergen(allergen):
